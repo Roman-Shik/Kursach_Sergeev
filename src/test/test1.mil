@@ -1,0 +1,7 @@
+BEGIN
+    i := 10;
+    GOTO a$;
+    i := i + 5;
+    a$;
+    WRITE(i)
+END

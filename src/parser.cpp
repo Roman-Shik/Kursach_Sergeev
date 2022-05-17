@@ -18,6 +18,7 @@ void Parser::program()
 	statementList();
 	mustBe(T_END);
 	codegen_->emit(STOP);
+	pasteJumps();
 }
 
 void Parser::statementList()
@@ -55,6 +56,24 @@ void Parser::statement()
 		mustBe(T_ASSIGN);
 		expression();
 		codegen_->emit(STORE, varAddress);
+	}
+	// Если встретили GOTO, то за ним должна следовать метка.
+	// После резервируем место для JUMP.
+	else if(match(T_GOTO)) {
+		mustBe(T_LABEL);
+		mustPasteJump_[scanner_->getStringValue()].push_back(codegen_->reserve());
+	}
+	// Если встретили метку, то проаеряем не встерчали ли мы ее ранее.
+	// После записываем адрес для перехода.
+	else if(match(T_LABEL)) {
+		auto label = scanner_->getStringValue();
+		auto it = labels_.find(label);
+		if(it != labels_.end()) {
+			reportError("label override.");
+		}
+		else {
+			labels_[label] = codegen_->getCurrentAddress();
+		}
 	}
 	// Если встретили IF, то затем должно следовать условие. 
 	// На вершине стека лежит 1 или 0 в зависимости от выполнения условия.
@@ -290,5 +309,14 @@ void Parser::recover(Token t)
 	}
 	if(see(t)) {
 		next();
+	}
+}
+
+void Parser::pasteJumps()
+{
+	for(auto i = mustPasteJump_.begin(); i != mustPasteJump_.end(); ++i) {
+		for(auto addres = i->second.begin(); addres != i->second.end(); ++addres) {
+			codegen_->emitAt(*addres, JUMP, labels_[i->first]);
+		}
 	}
 }

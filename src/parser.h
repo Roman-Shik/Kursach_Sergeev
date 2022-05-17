@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <vector>
 
 using namespace std;
 
@@ -111,6 +112,10 @@ private:
 	// добавляет ее в этот массив, увеличивает lastVar_ и возвращает его.
 	int findOrAddVariable(const string&); 
 
+	// Эта функция заполняет зарезервированные операторм GOTO места
+	// прыжками на метки
+	void pasteJumps();
+
 	Scanner* scanner_; // лексический анализатор для конструктора
 	CodeGen* codegen_; // указатель на виртуальную машину
 	ostream& output_; // выходной поток (в данном случае используем cout)
@@ -119,6 +124,9 @@ private:
 	bool recovered_; // не используется
 	VarTable variables_; // ассоциативный массив переменных программы
 	int lastVar_; // номер последней записанной переменной
+	VarTable labels_; // ассоциативный массив меток
+	std::map<string, std::vector<int>> mustPasteJump_; // ассоциативный массив мест,
+													   // куда нужно вставить JUMPы
 };
 
 #endif

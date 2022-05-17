@@ -28,6 +28,8 @@ static const char * tokenNames_[] = {
 	"'('",
 	"')'",
 	"';'",
+	"'label'",
+	"'GOTO'",
 };
 
 void Scanner::nextToken()
@@ -103,6 +105,14 @@ void Scanner::nextToken()
 		}
 
 		transform(buffer.begin(), buffer.end(), buffer.begin(), ::tolower);
+
+		// Если встретили метку
+		if(ch_ == '$') {
+			nextChar();
+			token_ = T_LABEL;
+			stringValue_ = buffer;
+			return;
+		}
 
 		map<string, Token>::iterator kwd = keywords_.find(buffer);
 		if(kwd == keywords_.end()) {
